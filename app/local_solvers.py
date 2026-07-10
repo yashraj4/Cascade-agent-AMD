@@ -62,7 +62,8 @@ def solve_ner(prompt: str) -> str | None:
     ]
     if not entities:
         return None
-    return str(entities)
+    import json
+    return json.dumps(entities)
 
 
 # Simple Arithmetic Solver
