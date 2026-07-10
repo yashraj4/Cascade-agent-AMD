@@ -1,0 +1,7 @@
+[
+  {"task_id": "t1", "prompt": "What is the capital of France?"},
+  {"task_id": "t2", "prompt": "What is 24 * 7?"},
+  {"task_id": "t3", "prompt": "Classify the sentiment of this review: I absolutely loved this product, it exceeded all my expectations!"},
+  {"task_id": "t4", "prompt": "Extract the named entities from: Barack Obama visited Paris on July 4th."},
+  {"task_id": "t5", "prompt": "This code has a bug: def add(a, b): return a - b"}
+]

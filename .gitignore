@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Local inputs and outputs
+input/
+output/
+
+# IDE files
+.vscode/
+.idea/
+.DS_Store
