@@ -1,5 +1,11 @@
+.env
+demo/demo_answers.json
+demo/body.json
+*.log
+
 # Python
 __pycache__/
+*.pyc
 *.py[cod]
 *$py.class
 venv/
