@@ -1,0 +1,66 @@
+[
+  {
+    "prompt": "What causes the seasons on Earth?",
+    "category": "factual_knowledge",
+    "path": "fireworks_escalation",
+    "model_used": "accounts/fireworks/models/minimax-m3",
+    "answer": "The seasons on Earth are primarily caused by two factors working together:\n\n1. **Axial tilt**: Earth's rotational axis is tilted approximately 23.5 degrees relative to the plane of its orbit around the Sun.\n\n2. **Orbit around the Sun**: As Earth revolves around the Sun over the course of a year, the direction of this tilt remains fixed in space (pointing toward the North Star, Polaris",
+    "tokens_used": 351
+  },
+  {
+    "prompt": "If a shirt costs $40 and is discounted by 25%, what is the final price?",
+    "category": "mathematical_reasoning",
+    "path": "fireworks_escalation",
+    "model_used": "accounts/fireworks/models/minimax-m3",
+    "answer": "**$30**\n\nA 25% discount on $40 equals $10 off ($40 \u00d7 0.25 = $10), so the final price is $40 \u2212 $10 = $30.",
+    "tokens_used": 255
+  },
+  {
+    "prompt": "Classify the sentiment: 'The service was slow and the food was cold.'",
+    "category": "sentiment_classification",
+    "path": "fireworks_escalation",
+    "model_used": "accounts/fireworks/models/minimax-m3",
+    "answer": "Sentiment: Negative. Justification: The customer expresses dissatisfaction with both the slow service and cold food, indicating a poor dining experience.",
+    "tokens_used": 227
+  },
+  {
+    "prompt": "Summarise in one sentence: Solar panels convert sunlight into electricity using photovoltaic cells, and their efficiency has improved significantly over the past decade while costs have fallen.",
+    "category": "text_summarisation",
+    "path": "fireworks_escalation",
+    "model_used": "accounts/fireworks/models/minimax-m3",
+    "answer": "Solar panels convert sunlight into electricity via photovoltaic cells, with efficiency rising and costs falling significantly over the past decade.",
+    "tokens_used": 226
+  },
+  {
+    "prompt": "Extract the named entities from: Marie Curie won the Nobel Prize in Stockholm in 1911.",
+    "category": "named_entity_recognition",
+    "path": "zero_cost_local",
+    "model_used": null,
+    "answer": "[{\"text\": \"Marie Curie\", \"label\": \"person\"}, {\"text\": \"Stockholm\", \"label\": \"location\"}, {\"text\": \"1911\", \"label\": \"date\"}]",
+    "tokens_used": 0
+  },
+  {
+    "prompt": "This code has a bug, fix it: def is_even(n): return n % 2 == 1",
+    "category": "code_debugging",
+    "path": "fireworks_escalation",
+    "model_used": "accounts/fireworks/models/kimi-k2p7-code",
+    "answer": "```python\ndef is_even(n): return n % 2 == 0  # Even numbers have remainder 0 when divided by 2\n```",
+    "tokens_used": 295
+  },
+  {
+    "prompt": "Three boxes are labeled Apples, Oranges, and Mixed, but all labels are wrong. You pick one fruit from the box labeled Mixed and get an apple. What is in each box?",
+    "category": "factual_knowledge",
+    "path": "fireworks_escalation",
+    "model_used": "accounts/fireworks/models/kimi-k2p7-code",
+    "answer": "- The box labeled **Mixed** contains only **Apples** (since its label is wrong and you drew an apple).\n- The box labeled **Oranges** contains",
+    "tokens_used": 274
+  },
+  {
+    "prompt": "Write a Python function that checks if a string is a palindrome.",
+    "category": "factual_knowledge",
+    "path": "fireworks_escalation",
+    "model_used": "accounts/fireworks/models/minimax-m3",
+    "answer": "```python\ndef is_palindrome(s: str) -> bool:\n    \"\"\"Return True if `s` is a palindrome, ignoring case and non-alphanumeric chars.\"\"\"\n    # Normalize: keep only alphanumeric chars and lowercase them\n    cleaned = ''.join(char.lower() for char in s if char.isalnum())\n    # Compare with its reverse\n    return cleaned == cleaned[::-",
+    "tokens_used": 358
+  }
+]

@@ -1,49 +1,83 @@
-"""
-Model selection and routing logic.
+﻿"""
+Model tiering / fallback ordering.
+
+ALLOWED_MODELS is published at runtime and must never be hardcoded - but as
+of the Track 1 announcement, the actual candidate model IDs are known:
+
+    minimax-m3              - large general reasoning model, always deployed
+    kimi-k2p7-code          - large model specialized for code, always deployed
+    gemma-4-31b-it          - Gemma, on-demand deployment required
+    gemma-4-26b-a4b-it      - Gemma MoE variant (~4B active params), on-demand
+    gemma-4-31b-it-nvfp4    - Gemma, quantized (nvfp4), on-demand, likely cheapest Gemma option
+
+IMPORTANT COST NOTE: Gemma models must be manually deployed at
+https://app.fireworks.ai/models before they're callable, and billing runs
+~$7/hour even while idle. A model can appear in ALLOWED_MODELS and still
+404 if your team hasn't deployed it (or undeployed it to save budget). This
+router therefore never assumes a specific model is actually reachable - it
+builds an ORDERED CANDIDATE LIST per category, and app/fireworks_client.py's
+chat_completion_with_fallback() tries them in order until one works.
+
+Preference logic:
+  - Code categories try the code-specialized model first (kimi-k2p7-code),
+    since a model literally trained for code should out-perform a generic
+    one at the same or lower token cost.
+  - Logical/deductive reasoning tries the general large reasoning model
+    first (minimax-m3).
+  - Simple/mid categories try the cheapest Gemma variants first (since
+    they're meant to be lighter-weight than minimax/kimi) - but this is
+    genuinely optional, not required to pass the accuracy gate, and the
+    fallback chain means it's never a hard dependency.
+  - Every list ends with whatever ALLOWED_MODELS entries weren't already
+    matched, so an unrecognized/new model ID is never silently ignored -
+    worst case it's tried last.
+
+This is the piece to sanity-check again if the model list changes.
 """
 from __future__ import annotations
 
 from .classifier import Category
 
-# Family model tiers
-_FAMILY_TIER = {
-    "gemma": 0,    # lightweight, prefer for simple/cheap escalations
-    "minimax": 2,  # large reasoning model, prefer for hard categories
-    "kimi": 2,     # large reasoning model, prefer for hard categories
+# Ordered by preference, most-preferred first. Matched case-insensitively as
+# substrings against whatever's actually in ALLOWED_MODELS at runtime.
+_CATEGORY_PREFERENCE: dict[Category, list[str]] = {
+    Category.CODE_DEBUG: ["kimi", "minimax", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it", "gemma-4-26b-a4b-it"],
+    Category.CODE_GEN: ["kimi", "minimax", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it", "gemma-4-26b-a4b-it"],
+    Category.LOGICAL: ["minimax", "kimi", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it", "gemma-4-26b-a4b-it"],
+    Category.FACTUAL: ["gemma-4-31b-it-nvfp4", "gemma-4-26b-a4b-it", "gemma-4-31b-it", "minimax", "kimi"],
+    Category.SUMMARIZATION: ["gemma-4-31b-it-nvfp4", "gemma-4-26b-a4b-it", "gemma-4-31b-it", "minimax", "kimi"],
+    # These three only ever get here via escalation (local solver wasn't confident) -
+    # keep it cheap since the task itself is meant to be simple.
+    Category.SENTIMENT: ["gemma-4-26b-a4b-it", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it", "minimax", "kimi"],
+    Category.NER: ["gemma-4-26b-a4b-it", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it", "minimax", "kimi"],
+    Category.MATH: ["gemma-4-26b-a4b-it", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it", "minimax", "kimi"],
 }
-
-_HIGH_TIER_CATEGORIES = {Category.LOGICAL, Category.CODE_GEN, Category.CODE_DEBUG}
-
-
-def _tier_of(model_id: str) -> int:
-    lowered = model_id.lower()
-    for family, tier in _FAMILY_TIER.items():
-        if family in lowered:
-            return tier
-    return 1
 
 
 class ModelTiers:
     def __init__(self, allowed_models: list[str]):
         if not allowed_models:
             raise ValueError("ALLOWED_MODELS is empty - cannot route any task.")
-        self.ranked = sorted(allowed_models, key=_tier_of)
+        self.allowed_models = allowed_models
 
-    @property
-    def smallest(self) -> str:
-        return self.ranked[0]
+    def candidates_for(self, category: Category) -> list[str]:
+        """
+        Returns an ordered list of models to try for this category, filtered
+        to only what's actually present in ALLOWED_MODELS, with any
+        unmatched/unknown models appended at the end as a last resort.
+        """
+        preference = _CATEGORY_PREFERENCE.get(category, [])
+        ordered: list[str] = []
 
-    @property
-    def largest(self) -> str:
-        return self.ranked[-1]
+        for term in preference:
+            for model in self.allowed_models:
+                if term.lower() in model.lower() and model not in ordered:
+                    ordered.append(model)
 
-    @property
-    def mid(self) -> str:
-        return self.ranked[len(self.ranked) // 2]
+        # Anything in ALLOWED_MODELS not matched by any preference term - try
+        # it last rather than never trying it at all.
+        for model in self.allowed_models:
+            if model not in ordered:
+                ordered.append(model)
 
-    def select(self, category: Category) -> str:
-        if category in _HIGH_TIER_CATEGORIES:
-            return self.largest
-        if category in (Category.FACTUAL, Category.SUMMARIZATION):
-            return self.mid
-        return self.smallest
+        return ordered
