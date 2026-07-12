@@ -60,6 +60,8 @@ def sanitize_answer(category: Category, raw: str) -> str:
 def _strip_code_fences(text: str) -> str:
     stripped = text.strip()
     # Match ```optional-lang\n...\n``` or ```optional-lang\n...```
+    # Do NOT .strip() the inner content — it trims meaningful trailing newlines
+    # or final comment lines from multi-line code.
     for pattern in (
         r"^```[a-zA-Z0-9_+\-]*\n(.*)\n```$",
         r"^```[a-zA-Z0-9_+\-]*\n(.*)```$",
@@ -67,7 +69,7 @@ def _strip_code_fences(text: str) -> str:
     ):
         m = re.match(pattern, stripped, re.DOTALL)
         if m:
-            return m.group(1).strip()
+            return m.group(1)  # no .strip() — preserve the code exactly
     return text
 
 
@@ -114,21 +116,27 @@ def _try_parse_json_array(text: str):
 
 def _sanitize_sentiment(text: str) -> str:
     # Use re.search (not match) so preamble before "Sentiment:" doesn't block.
+    # Use greedy (.+) so we capture the FULL justification, not just one word.
     m = re.search(
-        r"Sentiment:\s*([A-Za-z]+)\.\s*Justification:\s*(.+?)\.?\s*$",
+        r"Sentiment:\s*([A-Za-z]+)\.\s*Justification:\s*(.+)\s*$",
         text.strip(), re.IGNORECASE | re.DOTALL,
     )
     if not m:
         return text  # pattern not found — leave untouched
 
-    raw_label, justification = m.group(1), m.group(2).strip()
+    raw_label = m.group(1)
+    justification = m.group(2).strip()
     canonical = _SENTIMENT_LABEL_CANON.get(raw_label.lower())
     if canonical is None:
         return text  # unrecognised label word — don't guess
 
-    # Ensure the justification ends with a period.
-    if justification and not justification.endswith("."):
-        justification += "."
+    # Ensure the justification ends with exactly one period.
+    # Strip trailing quotes/whitespace to check if there's already a period
+    # inside closing punctuation (e.g. 'said "amazing."') before adding one.
+    check = justification.rstrip('"\'').rstrip()
+    if not check.endswith("."):
+        justification = justification.rstrip() + "."
+
     return f"Sentiment: {canonical}. Justification: {justification}"
 
 

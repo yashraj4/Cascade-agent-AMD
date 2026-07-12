@@ -33,11 +33,9 @@ _SYSTEM_PROMPTS: dict[Category, str] = {
         "- Use 'Negative' when the overall tone is clearly negative.\n"
         "Your response MUST follow this EXACT format, with nothing before or after it:\n"
         "Sentiment: <label>. Justification: <one sentence>.\n"
-        "The justification MUST quote at least one short exact phrase (in double quotes) "
-        "directly from the input text — never write a generic statement like 'the overall "
-        "tone is positive' with no reference to the actual content. "
-        "For Mixed sentiment, you MUST quote one phrase supporting the positive aspect "
-        "AND one phrase supporting the negative aspect."
+        "The justification must reference specific details from the text — not just "
+        "'the overall tone is positive'. For Mixed sentiment specifically, the justification "
+        "MUST explicitly mention both the positive aspect AND the negative aspect found in the text."
     ),
     Category.SUMMARIZATION: (
         "Summarise to EXACTLY the length/format constraint specified in the request. "
@@ -84,7 +82,7 @@ _SYSTEM_PROMPTS: dict[Category, str] = {
 _MAX_TOKENS: dict[Category, int] = {
     Category.FACTUAL: 300,
     Category.MATH: 400,
-    Category.SENTIMENT: 150,
+    Category.SENTIMENT: 200,
     Category.SUMMARIZATION: 300,
     Category.NER: 400,
     Category.CODE_DEBUG: 500,
