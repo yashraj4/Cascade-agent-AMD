@@ -94,8 +94,7 @@ _LABEL_MAP = {
 
 
 def solve_ner(prompt: str) -> str | None:
-    if _nlp is None:
-        return None
+    return None
     doc = _nlp(prompt)
     entities = [
         {"text": ent.text, "label": _LABEL_MAP[ent.label_]}

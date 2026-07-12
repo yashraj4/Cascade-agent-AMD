@@ -1,4 +1,4 @@
-﻿"""
+"""
 Model tiering / fallback ordering.
 
 ALLOWED_MODELS is published at runtime and must never be hardcoded - but as
@@ -49,7 +49,7 @@ _CATEGORY_PREFERENCE: dict[Category, list[str]] = {
     # These three only ever get here via escalation (local solver wasn't confident) -
     # keep it cheap since the task itself is meant to be simple.
     Category.SENTIMENT: ["gemma-4-26b-a4b-it", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it", "minimax", "kimi"],
-    Category.NER: ["gemma-4-26b-a4b-it", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it", "minimax", "kimi"],
+    Category.NER: ["minimax", "kimi", "gemma-4-26b-a4b-it", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it"],
     Category.MATH: ["gemma-4-26b-a4b-it", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it", "minimax", "kimi"],
 }
 

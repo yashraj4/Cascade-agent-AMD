@@ -45,12 +45,18 @@ def sanitize_answer(category: Category, raw: str) -> str:
             return _sanitize_ner(raw)
         if category == Category.SENTIMENT:
             return _sanitize_sentiment(raw)
+        if category == Category.MATH:
+            return _sanitize_math(raw)
         if category == Category.SUMMARIZATION:
             return _sanitize_bullets(raw)
     except Exception:
         # Sanitizing must never be the reason a task fails.
         pass
     return raw
+
+def _sanitize_math(text: str) -> str:
+    # Remove commas used as thousands separators in numbers (e.g. 1,672 -> 1672)
+    return re.sub(r'(?<=\d),(?=\d)', '', text)
 
 
 # ---------------------------------------------------------------------------
@@ -59,17 +65,16 @@ def sanitize_answer(category: Category, raw: str) -> str:
 
 def _strip_code_fences(text: str) -> str:
     stripped = text.strip()
-    # Match ```optional-lang\n...\n``` or ```optional-lang\n...```
-    # Do NOT .strip() the inner content — it trims meaningful trailing newlines
-    # or final comment lines from multi-line code.
-    for pattern in (
-        r"^```[a-zA-Z0-9_+\-]*\n(.*)\n```$",
-        r"^```[a-zA-Z0-9_+\-]*\n(.*)```$",
-        r"^```\n(.*)\n```$",
-    ):
-        m = re.match(pattern, stripped, re.DOTALL)
-        if m:
-            return m.group(1)  # no .strip() — preserve the code exactly
+    # Find all code blocks regardless of where they are in the text.
+    # Returns the last one, assuming the model puts its final answer at the end.
+    blocks = re.findall(r"```[a-zA-Z0-9_+\-]*\n(.*?)```", stripped, re.DOTALL)
+    if blocks:
+        return blocks[-1]  # preserve internal formatting, no .strip()
+    
+    # If no fences are found, but the user returned inline backticks
+    if stripped.startswith("`") and stripped.endswith("`"):
+        return stripped[1:-1]
+    
     return text
 
 

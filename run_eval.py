@@ -1304,7 +1304,11 @@ def run_evaluation(category_filter: str | None, limit: int | None):
             print(f"\n[ID: {fail['task_id']}] Category: {fail['category']}")
             print(f"  Prompt: {fail['prompt']}")
             print(f"  Classified As: {fail['classified_as']}")
-            print(f"  Actual Answer: '{fail['answer'].strip()}'")
+            try:
+                print(f"  Actual Answer: '{fail['answer'].strip()}'")
+            except UnicodeEncodeError:
+                safe_answer = fail['answer'].encode('ascii', 'replace').decode('ascii')
+                print(f"  Actual Answer: '{safe_answer.strip()}'")
             print(f"  \033[91mReason: {fail['error']}\033[0m")
         if len(failures) > 15:
             print(f"\n... and {len(failures) - 15} more failures. Check output/eval_results.json for details.")
