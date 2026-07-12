@@ -31,6 +31,7 @@ from .fireworks_client import FireworksClient
 from .local_solvers import solve_ner, solve_simple_arithmetic
 from .model_router import ModelTiers
 from .prompts import build_messages, max_tokens_for
+from .sanitize import sanitize_answer
 
 INPUT_PATH = os.environ.get("INPUT_PATH", "/input/tasks.json")
 OUTPUT_PATH = os.environ.get("OUTPUT_PATH", "/output/results.json")
@@ -98,8 +99,11 @@ def solve_task(task: dict, fallback_index: int, tiers: ModelTiers, client: Firew
         answer, _tokens_used, model_used = client.chat_completion_with_fallback(
             candidates, messages, max_tokens
         )
+        sanitized = sanitize_answer(category, answer)
+        if sanitized != answer:
+            log(f"[info] task {task_id}: sanitizer adjusted output")
         log(f"[info] task {task_id} ({category.value}) -> {model_used}")
-        return {"task_id": task_id, "answer": answer}
+        return {"task_id": task_id, "answer": sanitized}
 
     except Exception as exc:  # noqa: BLE001 - never let one bad task crash the batch
         log(f"[warn] task {task_id} failed: {exc}")

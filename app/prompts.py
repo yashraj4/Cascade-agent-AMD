@@ -1,9 +1,10 @@
 """
 Category-specific prompt templates.
 
-Each template adds a short system instruction pushing the model toward a
-concise, directly-scoreable answer — the goal is fewer output tokens without
-losing the information the LLM-Judge needs to grade intent correctly.
+Prompting alone cannot GUARANTEE format compliance — models sometimes add
+preamble text, wrap code in fences, or vary label capitalization. app/sanitize.py
+provides a second, independent post-processing layer that catches these cases
+without ever risking corrupting an already-correct answer.
 """
 from __future__ import annotations
 
@@ -30,32 +31,40 @@ _SYSTEM_PROMPTS: dict[Category, str] = {
         "- Use 'Neutral' when the text is purely factual/descriptive with no strong emotion.\n"
         "- Use 'Positive' when the overall tone is clearly positive.\n"
         "- Use 'Negative' when the overall tone is clearly negative.\n"
-        "Your response MUST follow this EXACT format (no deviations):\n"
-        "Sentiment: <label>. Justification: <one sentence referencing specific details from the text>.\n"
-        "For Mixed sentiment, the justification MUST explicitly mention both the positive aspect "
-        "AND the negative aspect found in the text. Do not write a generic tone statement."
+        "Your response MUST follow this EXACT format, with nothing before or after it:\n"
+        "Sentiment: <label>. Justification: <one sentence>.\n"
+        "The justification MUST quote at least one short exact phrase (in double quotes) "
+        "directly from the input text — never write a generic statement like 'the overall "
+        "tone is positive' with no reference to the actual content. "
+        "For Mixed sentiment, you MUST quote one phrase supporting the positive aspect "
+        "AND one phrase supporting the negative aspect."
     ),
     Category.SUMMARIZATION: (
         "Summarise to EXACTLY the length/format constraint specified in the request. "
         "If asked for exactly N sentences, output exactly N sentences — no more, no less. "
-        "If asked for exactly N bullet points, output exactly N bullet points starting with '- '. "
+        "If asked for exactly N bullet points, output exactly N bullet points, each starting "
+        "with '- ' (a hyphen and a space). "
         "The summary must cover every major topic/aspect in the source text. "
         "Do not add any preamble, commentary, or explanation about the summary itself. "
         "Do not use markdown headers or code fences."
     ),
     Category.NER: (
         "Extract named entities from the text. "
-        "Output ONLY a valid JSON array of objects. Each object must have exactly two fields: "
-        "'text' (the entity as it appears in the text) and 'label' (one of: PERSON, ORGANIZATION, LOCATION, DATE). "
-        "Labels MUST be UPPERCASE. "
-        "Output ONLY the JSON array — no explanation, no markdown, no code fences, no trailing text. "
-        "Example: [{\"text\": \"Barack Obama\", \"label\": \"PERSON\"}, {\"text\": \"Paris\", \"label\": \"LOCATION\"}]"
+        "Output ONLY a valid JSON array of objects, and nothing else. Each object must have "
+        "exactly two fields: 'text' (the entity as it appears in the text) and 'label' "
+        "(one of: PERSON, ORGANIZATION, LOCATION, DATE). Labels MUST be UPPERCASE. "
+        "Your entire response must start with '[' and end with ']' — do not write 'Here is "
+        "the JSON:' or any other text before or after the array, and do not wrap it in "
+        "markdown code fences. "
+        "Example of the ENTIRE expected response: "
+        "[{\"text\": \"Barack Obama\", \"label\": \"PERSON\"}, {\"text\": \"Paris\", \"label\": \"LOCATION\"}]"
     ),
     Category.CODE_DEBUG: (
-        "You are a code debugger. Identify the bug in the provided code and output the corrected version. "
-        "Include a brief comment on the line that was fixed explaining what the bug was. "
-        "Output ONLY the corrected code — no markdown code fences (no ```), no surrounding explanation text, "
-        "no restating of the original buggy code."
+        "You are a code debugger. Identify the bug in the provided code and output the "
+        "corrected version. Include a brief comment on the fixed line explaining the bug. "
+        "Output ONLY the corrected code, and nothing else — no markdown code fences (no ```), "
+        "no surrounding explanation text, no restating of the original buggy code. "
+        "Your entire response must be valid, directly-runnable code."
     ),
     Category.LOGICAL: (
         "Solve the logic puzzle step by step. "
@@ -65,12 +74,13 @@ _SYSTEM_PROMPTS: dict[Category, str] = {
     ),
     Category.CODE_GEN: (
         "Write a correct, complete Python function that satisfies the given specification. "
-        "Output ONLY the code — no markdown code fences (no ```), no explanation, no surrounding text. "
-        "The code must be directly runnable."
+        "Output ONLY the code, and nothing else — no markdown code fences (no ```), "
+        "no explanation, no surrounding text. "
+        "Your entire response must be valid, directly-runnable code."
     ),
 }
 
-# Token limits — generous enough to not cut off reasoning, but bounded.
+# Token budgets — generous enough not to cut off reasoning.
 _MAX_TOKENS: dict[Category, int] = {
     Category.FACTUAL: 300,
     Category.MATH: 400,
