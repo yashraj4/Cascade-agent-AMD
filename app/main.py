@@ -32,9 +32,9 @@ from .local_solvers import solve_ner, solve_simple_arithmetic
 from .model_router import ModelTiers
 from .prompts import build_messages, max_tokens_for
 
-INPUT_PATH = "/input/tasks.json"
-OUTPUT_PATH = "/output/results.json"
-DEBUG_LOG_PATH = "/output/debug.log"
+INPUT_PATH = os.environ.get("INPUT_PATH", "/input/tasks.json")
+OUTPUT_PATH = os.environ.get("OUTPUT_PATH", "/output/results.json")
+DEBUG_LOG_PATH = os.environ.get("DEBUG_LOG_PATH", "/output/debug.log")
 MAX_WORKERS = 8
 
 _LOCAL_SOLVERS = {
