@@ -1,5 +1,5 @@
 """
-Comprehensive evaluation script for the Track 1 routing agent.
+Comprehensive evaluation script for the Track 2 routing agent.
 Contains 120 test cases (15 per category) based on the AMD Hackathon judging FAQ,
 public validation examples, and standard classification types.
 
@@ -1317,7 +1317,7 @@ def run_evaluation(category_filter: str | None, limit: int | None):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Track 1 Agent Evaluation Suite")
+    parser = argparse.ArgumentParser(description="Track 2 Agent Evaluation Suite")
     parser.add_argument("--category", type=str, default=None, help="Only run tasks of this category")
     parser.add_argument("--limit", type=int, default=None, help="Limit the number of tasks run")
     args = parser.parse_args()

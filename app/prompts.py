@@ -75,8 +75,7 @@ _SYSTEM_PROMPTS: dict[Category, str] = {
         "Write a correct, complete Python function that satisfies the given specification. "
         "Your final code MUST be wrapped in markdown code fences (```python ... ```). "
         "ALWAYS include a `return` statement. "
-        "If checking anagrams, use `sorted()`. If finding the longest word, use `split()`. "
-        "Do not write example usages, test calls, or print statements; output only the function itself."
+        "If checking anagrams, use `sorted()`. Ensure the output meets all algorithmic expectations."
     ),
 }
 

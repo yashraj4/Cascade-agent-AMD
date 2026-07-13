@@ -2,7 +2,7 @@
 Model tiering / fallback ordering.
 
 ALLOWED_MODELS is published at runtime and must never be hardcoded - but as
-of the Track 1 announcement, the actual candidate model IDs are known:
+of the Track 2 announcement, the actual candidate model IDs are known:
 
     minimax-m3              - large general reasoning model, always deployed
     kimi-k2p7-code          - large model specialized for code, always deployed
