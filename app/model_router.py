@@ -41,16 +41,20 @@ from .classifier import Category
 # Ordered by preference, most-preferred first. Matched case-insensitively as
 # substrings against whatever's actually in ALLOWED_MODELS at runtime.
 _CATEGORY_PREFERENCE: dict[Category, list[str]] = {
+    # CODE tasks: Kimi (code-specialist) is the strongest here — keep it first.
+    # Gemma is tried as a last resort only.
     Category.CODE_DEBUG: ["kimi", "minimax", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it", "gemma-4-26b-a4b-it"],
-    Category.CODE_GEN: ["kimi", "minimax", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it", "gemma-4-26b-a4b-it"],
-    Category.LOGICAL: ["minimax", "kimi", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it", "gemma-4-26b-a4b-it"],
-    Category.FACTUAL: ["gemma-4-31b-it-nvfp4", "gemma-4-26b-a4b-it", "gemma-4-31b-it", "minimax", "kimi"],
-    Category.SUMMARIZATION: ["gemma-4-31b-it-nvfp4", "gemma-4-26b-a4b-it", "gemma-4-31b-it", "minimax", "kimi"],
-    # These three only ever get here via escalation (local solver wasn't confident) -
-    # keep it cheap since the task itself is meant to be simple.
-    Category.SENTIMENT: ["gemma-4-26b-a4b-it", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it", "minimax", "kimi"],
-    Category.NER: ["minimax", "kimi", "gemma-4-26b-a4b-it", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it"],
-    Category.MATH: ["gemma-4-26b-a4b-it", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it", "minimax", "kimi"],
+    Category.CODE_GEN:   ["kimi", "minimax", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it", "gemma-4-26b-a4b-it"],
+    # NER: MiniMax is strongest for structured JSON compliance; Gemma as fallback.
+    Category.NER:        ["minimax", "kimi", "gemma-4-31b-it-nvfp4", "gemma-4-26b-a4b-it", "gemma-4-31b-it"],
+    # LOGICAL: Gemma 31B has a native thinking mode — try it first at 0 tokens.
+    # MiniMax/Kimi are premium fallbacks only if Gemma fails.
+    Category.LOGICAL:    ["gemma-4-31b-it", "gemma-4-31b-it-nvfp4", "gemma-4-26b-a4b-it", "minimax", "kimi"],
+    # Simple text tasks: always try Gemma first (0-token cost), escalate only on failure.
+    Category.FACTUAL:      ["gemma-4-31b-it-nvfp4", "gemma-4-26b-a4b-it", "gemma-4-31b-it", "minimax", "kimi"],
+    Category.MATH:         ["gemma-4-26b-a4b-it", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it", "minimax", "kimi"],
+    Category.SUMMARIZATION:["gemma-4-31b-it-nvfp4", "gemma-4-26b-a4b-it", "gemma-4-31b-it", "minimax", "kimi"],
+    Category.SENTIMENT:    ["gemma-4-26b-a4b-it", "gemma-4-31b-it-nvfp4", "gemma-4-31b-it", "minimax", "kimi"],
 }
 
 

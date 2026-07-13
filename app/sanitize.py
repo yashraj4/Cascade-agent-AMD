@@ -39,6 +39,11 @@ def sanitize_answer(category: Category, raw: str) -> str:
     if not raw:
         return raw
     try:
+        # Universal pre-pass: strip Gemma's thinking blocks before any category-specific logic.
+        # Gemma 4 outputs <|channel>thought\n...\n<channel|> when thinking mode is active.
+        # The evaluator must never see these internal reasoning traces.
+        raw = _strip_gemma_thinking(raw)
+
         if category in (Category.CODE_DEBUG, Category.CODE_GEN):
             return _strip_code_fences(raw)
         if category == Category.NER:
@@ -53,6 +58,19 @@ def sanitize_answer(category: Category, raw: str) -> str:
         # Sanitizing must never be the reason a task fails.
         pass
     return raw
+
+
+def _strip_gemma_thinking(text: str) -> str:
+    """Remove Gemma 4's internal thinking blocks from the output.
+    Pattern: <|channel>thought\\n...\\n<channel|>
+    Also handles the empty variant the model emits when thinking is disabled.
+    """
+    # Strip filled thinking blocks
+    text = re.sub(r"<\|channel\>thought.*?<channel\|>", "", text, flags=re.DOTALL)
+    # Strip any leftover empty channel tags
+    text = re.sub(r"<\|channel\>.*?<channel\|>", "", text, flags=re.DOTALL)
+    return text.strip()
+
 
 def _sanitize_math(text: str) -> str:
     # Remove commas used as thousands separators in numbers (e.g. 1,672 -> 1672)
