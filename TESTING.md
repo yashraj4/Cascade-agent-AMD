@@ -4,11 +4,10 @@ This guide explains how to test the Cascade Agent locally.
 
 ## Unit Testing
 
-You can verify the classification and local solvers directly using Python:
+You can verify the classification and the AST-based math solver directly using Python:
 
 ```bash
 pip install -r requirements.txt
-python -m spacy download en_core_web_sm
 
 # Test category classification
 python3 -c "
@@ -17,11 +16,9 @@ print(classify('What is the capital of France?'))
 print(classify('Write a function that reverses a string'))
 "
 
-# Test local solvers
+# Test local math solver
 python3 -c "
-from app.local_solvers import solve_sentiment, solve_simple_arithmetic
-print(solve_sentiment('I loved this, it was amazing!'))
-print(solve_sentiment('The meeting is at 3pm.'))
+from app.local_solvers import solve_simple_arithmetic
 print(solve_simple_arithmetic('What is 24 * 7?'))
 "
 ```
@@ -49,6 +46,14 @@ You can run the app against a mock API server to verify network client code, for
    ```bash
    python validate_submission.py input/tasks.json output/results.json
    ```
+
+## Standardized Evaluation
+
+To run the local 120-task evaluation suite against the real Fireworks API:
+
+```bash
+python run_eval.py
+```
 
 ## Docker Testing
 

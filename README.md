@@ -1,13 +1,16 @@
-# Cascade Agent AMD
+# CascadeAgent (AMD Track 2)
 
-A general-purpose routing agent that dynamically routes tasks to local solvers or to the Fireworks API based on task category.
+A general-purpose routing agent designed for the AMD Developer Hackathon (Act II, Track 2). It dynamically routes tasks to optimal model tiers on Fireworks AI or resolves them locally using zero-cost code solvers.
 
-## Features
+## Core Architecture & Features
 
-- **Dynamic Task Classification**: Classifies incoming tasks into distinct categories using light heuristics.
-- **Local Solvers**: Uses lightweight local processing (VADER for sentiment analysis, spaCy for named entity recognition, and AST-based arithmetic evaluation) to resolve tasks without external API overhead.
-- **Fireworks Integration**: Routes complex tasks to optimal model tiers via the Fireworks API.
-- **Containerized Deployment**: Ready to be run inside a Docker container.
+- **Dynamic Heuristic Classification**: Classifies incoming tasks into 8 distinct categories (Factual, Math, Sentiment, Summarization, NER, Code Debugging, Logical Reasoning, and Code Generation) using fast, zero-cost keyword and regex heuristics.
+- **0-Token Cost Optimization (Gemma-First)**: Routes simple text, math, and logical categories to the cheapest **Gemma models first** (0-token billing) to maximize the track-specific quality score, falling back to premium tiers only if needed.
+- **Specialized Premium Tiering**: 
+  - **Kimi (code-specialized)** is prioritized for Code Generation and Code Debugging tasks to ensure high algorithmic accuracy.
+  - **MiniMax** is prioritized for Named Entity Recognition (NER) to ensure strict compliance with structured JSON formats.
+- **Zero-Cost Local Solvers**: Resolves simple arithmetic expressions directly in Python using a safe AST-based evaluator, bypassing external API calls entirely when confident.
+- **Robust Sanitization Layer**: Strips Gemma thinking blocks, normalizes output JSON schemas, enforces formatting constraints (e.g. sentiment formats, bullet markers, removal of commas in large numbers), and handles unclosed code blocks defensively.
 
 ## Setup & Running
 
@@ -17,7 +20,6 @@ Install the required dependencies:
 
 ```bash
 pip install -r requirements.txt
-python -m spacy download en_core_web_sm
 ```
 
 ### Running Locally
